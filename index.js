@@ -73,11 +73,6 @@ function runSolutions(sourceCount) {
         asyncLogSources.push(new LogSource());
       }
 
-      // for (let asyncLog of asyncLogSources) {
-      //   let log = asyncLog.popAsync();
-      //   logPromises.push(log);
-      // }
-
       const foldLogs = (logPromises) => {
         Promise.resolve(
           Promise.all(
