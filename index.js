@@ -73,19 +73,33 @@ function runSolutions(sourceCount) {
         asyncLogSources.push(new LogSource());
       }
 
-      for (let asyncLog of asyncLogSources) {
-        let log = await asyncLog.popAsync();
-        while (log) {
-          AsyncLogHeap.insert(log);
-          log = await asyncLog.popAsync();
-        }
-      }
+      // for (let asyncLog of asyncLogSources) {
+      //   let log = asyncLog.popAsync();
+      //   logPromises.push(log);
+      // }
 
-      while (AsyncLogHeap.size) {
-        AsyncLogPrinter.print(AsyncLogHeap.getMin());
-      }
+      const foldLogs = (logPromises) => {
+        Promise.resolve(
+          Promise.all(
+            logPromises.map((logSource) => {
+              return logSource.popAsync();
+            })
+          ).then((logs) => {
+            if (logs.filter(l => l !== false).length) {
+              logs.map((log) => {
+                if (log) AsyncLogHeap.insert(log);
+              });
+              foldLogs(asyncLogSources);
+            }
+            else {
+              while (AsyncLogHeap.size) AsyncLogPrinter.print(AsyncLogHeap.getMin());
+              AsyncLogPrinter.done();
+            }
+          })
+        );
+      };
 
-      AsyncLogPrinter.done();
+      foldLogs(asyncLogSources);
 
       require("./solution/async-sorted-merge")(asyncLogSources, new Printer())
         .then(resolve)
@@ -95,4 +109,4 @@ function runSolutions(sourceCount) {
 }
 
 // Adjust this input to see how your solutions perform under various loads.
-runSolutions(50);
+runSolutions(1000);
