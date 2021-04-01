@@ -2,6 +2,7 @@
 
 const LogSource = require("./lib/log-source");
 const Printer = require("./lib/printer");
+const MinHeap = require("./lib/min-heap");
 
 function runSolutions(sourceCount) {
   return new Promise((resolve, reject) => {
@@ -26,17 +27,36 @@ function runSolutions(sourceCount) {
      * Call 'printer.done()' at the end to get a few stats on your solution!
      */
     const syncLogSources = [];
+
     for (let i = 0; i < sourceCount; i++) {
       syncLogSources.push(new LogSource());
     }
     try {
+      const LogHeap = new MinHeap();
+      const SyncLogPrinter = new Printer();
+
       require("./solution/sync-sorted-merge")(syncLogSources, new Printer());
+
+      for (let syncLog of syncLogSources) {
+        let log = syncLog.pop();
+        while (log) {
+          LogHeap.insert(log);
+          log = syncLog.pop();
+        }
+      }
+
+      while (LogHeap.size) {
+        SyncLogPrinter.print(LogHeap.getMin());
+      }
+
+      SyncLogPrinter.done();
+
       resolve();
     } catch (e) {
       reject(e);
     }
   }).then(() => {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       /**
        * Challenge Number 2!
        *
@@ -44,10 +64,29 @@ function runSolutions(sourceCount) {
        * has only one method: popAsync() which returns a promise that resolves with a LogEntry,
        * or boolean false once the LogSource has ended.
        */
+
+      const AsyncLogPrinter = new Printer();
+      const AsyncLogHeap = new MinHeap();
       const asyncLogSources = [];
+
       for (let i = 0; i < sourceCount; i++) {
         asyncLogSources.push(new LogSource());
       }
+
+      for (let asyncLog of asyncLogSources) {
+        let log = await asyncLog.popAsync();
+        while (log) {
+          AsyncLogHeap.insert(log);
+          log = await asyncLog.popAsync();
+        }
+      }
+
+      while (AsyncLogHeap.size) {
+        AsyncLogPrinter.print(AsyncLogHeap.getMin());
+      }
+
+      AsyncLogPrinter.done();
+
       require("./solution/async-sorted-merge")(asyncLogSources, new Printer())
         .then(resolve)
         .catch(reject);
@@ -56,4 +95,4 @@ function runSolutions(sourceCount) {
 }
 
 // Adjust this input to see how your solutions perform under various loads.
-runSolutions(100);
+runSolutions(50);
