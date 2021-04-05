@@ -4,25 +4,6 @@ const LogSource = require("./lib/log-source");
 const Printer = require("./lib/printer");
 const MinHeap = require("./lib/min-heap");
 
-const drainLogs = (arr, printer) => {
-  const logs = arr
-    .map((log) => log.pop())
-    .filter((log) => log !== false)
-    .sort(compareDates)
-    .map((v) => {
-      printer.print(v);
-      return v;
-    });
-
-  if (logs.length) {
-    return drainLogs(arr, printer);
-  }
-};
-
-const compareDates = (a, b) => {
-  return new Date(a.date).getTime() - new Date(b.date).getTime();
-};
-
 function runSolutions(sourceCount) {
   return new Promise((resolve, reject) => {
     /**
@@ -51,11 +32,23 @@ function runSolutions(sourceCount) {
       syncLogSources.push(new LogSource());
     }
     try {
+      const LogHeap = new MinHeap();
       const SyncLogPrinter = new Printer();
+
       require("./solution/sync-sorted-merge")(syncLogSources, new Printer());
 
-      // prettier functional aproach <3
-      drainLogs(syncLogSources, SyncLogPrinter);
+      for (let syncLog of syncLogSources) {
+        let log = syncLog.pop();
+        while (log) {
+          LogHeap.insert(log);
+          log = syncLog.pop();
+        }
+      }
+
+      while (LogHeap.size) {
+        SyncLogPrinter.print(LogHeap.getMin());
+      }
+
       SyncLogPrinter.done();
 
       resolve();
@@ -80,8 +73,28 @@ function runSolutions(sourceCount) {
         asyncLogSources.push(new LogSource());
       }
 
-      // drainLogs(asyncLogSources, AsyncLogPrinter);
-      // AsyncLogPrinter.done();
+      const foldLogs = (logPromises) => {
+        Promise.resolve(
+          Promise.all(
+            logPromises.map((logSource) => {
+              return logSource.popAsync();
+            })
+          ).then((logs) => {
+            if (logs.filter(l => l !== false).length) {
+              logs.map((log) => {
+                if (log) AsyncLogHeap.insert(log);
+              });
+              foldLogs(asyncLogSources);
+            }
+            else {
+              while (AsyncLogHeap.size) AsyncLogPrinter.print(AsyncLogHeap.getMin());
+              AsyncLogPrinter.done();
+            }
+          })
+        );
+      };
+
+      foldLogs(asyncLogSources);
 
       require("./solution/async-sorted-merge")(asyncLogSources, new Printer())
         .then(resolve)
@@ -91,4 +104,4 @@ function runSolutions(sourceCount) {
 }
 
 // Adjust this input to see how your solutions perform under various loads.
-runSolutions(2);
+runSolutions(1000);
