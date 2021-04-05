@@ -5,11 +5,18 @@ const Printer = require("./lib/printer");
 const MinHeap = require("./lib/min-heap");
 
 const drainLogs = (arr, printer) => {
-  arr
+  const logs = arr
     .map((log) => log.pop())
     .filter((log) => log !== false)
     .sort(compareDates)
-    .map((v) => printer.print(v));
+    .map((v) => {
+      printer.print(v);
+      return v;
+    });
+
+  if (logs.length) {
+    return drainLogs(arr, printer);
+  }
 };
 
 const compareDates = (a, b) => {
@@ -73,8 +80,8 @@ function runSolutions(sourceCount) {
         asyncLogSources.push(new LogSource());
       }
 
-      drainLogs(asyncLogSources, AsyncLogPrinter);
-      AsyncLogPrinter.done();
+      // drainLogs(asyncLogSources, AsyncLogPrinter);
+      // AsyncLogPrinter.done();
 
       require("./solution/async-sorted-merge")(asyncLogSources, new Printer())
         .then(resolve)
@@ -84,4 +91,4 @@ function runSolutions(sourceCount) {
 }
 
 // Adjust this input to see how your solutions perform under various loads.
-runSolutions(100000);
+runSolutions(2);
