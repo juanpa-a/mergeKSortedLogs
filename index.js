@@ -37,18 +37,6 @@ function runSolutions(sourceCount) {
 
       require("./solution/sync-sorted-merge")(syncLogSources, new Printer());
 
-      // for (let syncLog of syncLogSources) {
-      //   let log = syncLog.pop();
-      //   while (log) {
-      //     LogHeap.insert(log);
-      //     log = syncLog.pop();
-      //   }
-      // }
-
-      // while (LogHeap.size) {
-      //   SyncLogPrinter.print(LogHeap.getMin());
-      // }
-
       const compareDates = (a, b) => {
         return new Date(a.date).getTime() - new Date(b.date).getTime()
       }
