@@ -8,4 +8,8 @@ I opted for a **Min Heap** as is the easiest way *(that I could think of)* to ac
 
 Once I got all the data in my **MinHeap** it was just a matter of extracting it while passing it to the printer method!
 
+## Async challenge
+
+for the async part of the challenge I broke the problems into arrays composed of the same index of multiples array a catched into into a `Promise.all()` this way I don't have to wait for every request individually, I just group them and wait for the groups to finish.
+
 ![https://monophy.com/media/TgxRGWp2XQV8fqcLd5/monophy.gif](https://monophy.com/media/TgxRGWp2XQV8fqcLd5/monophy.gif)
