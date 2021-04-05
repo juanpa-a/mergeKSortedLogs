@@ -37,20 +37,32 @@ function runSolutions(sourceCount) {
 
       require("./solution/sync-sorted-merge")(syncLogSources, new Printer());
 
-      for (let syncLog of syncLogSources) {
-        let log = syncLog.pop();
-        while (log) {
-          LogHeap.insert(log);
-          log = syncLog.pop();
-        }
+      // for (let syncLog of syncLogSources) {
+      //   let log = syncLog.pop();
+      //   while (log) {
+      //     LogHeap.insert(log);
+      //     log = syncLog.pop();
+      //   }
+      // }
+
+      // while (LogHeap.size) {
+      //   SyncLogPrinter.print(LogHeap.getMin());
+      // }
+
+      const compareDates = (a, b) => {
+        return new Date(a.date).getTime() - new Date(b.date).getTime()
       }
 
-      while (LogHeap.size) {
-        SyncLogPrinter.print(LogHeap.getMin());
-      }
-
+      // prettier functional aproach <3
+      
+      syncLogSources
+        .map(log => log.pop())
+        .filter(log => log !== false)
+        .sort(compareDates)
+        .map( v => SyncLogPrinter.print(v))
+      
       SyncLogPrinter.done();
-
+      
       resolve();
     } catch (e) {
       reject(e);
@@ -94,7 +106,7 @@ function runSolutions(sourceCount) {
         );
       };
 
-      foldLogs(asyncLogSources);
+      // foldLogs(asyncLogSources);
 
       require("./solution/async-sorted-merge")(asyncLogSources, new Printer())
         .then(resolve)
@@ -104,4 +116,4 @@ function runSolutions(sourceCount) {
 }
 
 // Adjust this input to see how your solutions perform under various loads.
-runSolutions(1000);
+runSolutions(100000);
