@@ -4,6 +4,18 @@ const LogSource = require("./lib/log-source");
 const Printer = require("./lib/printer");
 const MinHeap = require("./lib/min-heap");
 
+const drainLogs = (arr, printer) => {
+  arr
+    .map((log) => log.pop())
+    .filter((log) => log !== false)
+    .sort(compareDates)
+    .map((v) => printer.print(v));
+};
+
+const compareDates = (a, b) => {
+  return new Date(a.date).getTime() - new Date(b.date).getTime();
+};
+
 function runSolutions(sourceCount) {
   return new Promise((resolve, reject) => {
     /**
@@ -32,25 +44,13 @@ function runSolutions(sourceCount) {
       syncLogSources.push(new LogSource());
     }
     try {
-      const LogHeap = new MinHeap();
       const SyncLogPrinter = new Printer();
-
       require("./solution/sync-sorted-merge")(syncLogSources, new Printer());
 
-      const compareDates = (a, b) => {
-        return new Date(a.date).getTime() - new Date(b.date).getTime()
-      }
-
       // prettier functional aproach <3
-      
-      syncLogSources
-        .map(log => log.pop())
-        .filter(log => log !== false)
-        .sort(compareDates)
-        .map( v => SyncLogPrinter.print(v))
-      
+      drainLogs(syncLogSources, SyncLogPrinter);
       SyncLogPrinter.done();
-      
+
       resolve();
     } catch (e) {
       reject(e);
@@ -73,26 +73,8 @@ function runSolutions(sourceCount) {
         asyncLogSources.push(new LogSource());
       }
 
-      const foldLogs = (logPromises) => {
-        Promise.resolve(
-          Promise.all(
-            logPromises.map((logSource) => {
-              return logSource.popAsync();
-            })
-          ).then((logs) => {
-            if (logs.filter(l => l !== false).length) {
-              logs.map((log) => {
-                if (log) AsyncLogHeap.insert(log);
-              });
-              foldLogs(asyncLogSources);
-            }
-            else {
-              while (AsyncLogHeap.size) AsyncLogPrinter.print(AsyncLogHeap.getMin());
-              AsyncLogPrinter.done();
-            }
-          })
-        );
-      };
+      drainLogs(asyncLogSources, AsyncLogPrinter);
+      AsyncLogPrinter.done();
 
       // foldLogs(asyncLogSources);
 
