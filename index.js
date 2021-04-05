@@ -76,8 +76,6 @@ function runSolutions(sourceCount) {
       drainLogs(asyncLogSources, AsyncLogPrinter);
       AsyncLogPrinter.done();
 
-      // foldLogs(asyncLogSources);
-
       require("./solution/async-sorted-merge")(asyncLogSources, new Printer())
         .then(resolve)
         .catch(reject);
